@@ -12,8 +12,10 @@
 
 	let ruleGroup: string;
 	let rules: any[] = [];
+	let role:any
 
 	async function getRules(ruleGroup: string) {
+		role = localStorage.getItem("role")
 		const res = await AdminService.getRules(ruleGroup);
 		rules = res.rules;
 	}
@@ -64,7 +66,11 @@
 				</div>
 			</div>
 			<div class="flex flex-col">
-				<Toggle disabled checked={rule.On} on:click={() => toggleRule(index)} />
+				{#if role != "Junior Developer"}
+					<Toggle checked={rule.On} on:click={() => toggleRule(index)} />
+				{:else}
+					<Toggle disabled checked={rule.On} on:click={() => toggleRule(index)} />
+				{/if}
 			</div>
 		</div>
 	{/each}

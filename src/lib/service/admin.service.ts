@@ -17,7 +17,7 @@ export abstract class AdminService {
 
 	public static async getLog(lid: string): Promise<LogsResponse> {
 		try {
-			const res: any = await this.httpService.request.get('/admin/log/' + lid);
+			let res: any = await this.httpService.request.get('/admin/log/' + lid);
 			return res;
 		} catch (e) {
 			throw e;
@@ -180,10 +180,14 @@ export abstract class AdminService {
 	}
 
 	public static async getRuleInfo(ruleGroup: string): Promise<any> {
+		console.log('in getRuleInfo');
 		try {
-			const res: any = await this.httpService.request.get('/admin/rule/' + ruleGroup);
+			console.log('httpService');
+			let res: any = await this.httpService.request.get('/admin/rule/' + ruleGroup);
+			console.log(res);
 			return res;
 		} catch (e) {
+			console.log(e);
 			throw e;
 		}
 	}
@@ -249,7 +253,7 @@ export abstract class AdminService {
 			const res: any = await this.httpService.request
 				.withJSON({
 					file_name: rule.file_name,
-					rule_iD: rule.rule_iD,
+					rule_id: rule.rule_id,
 					phase: rule.phase,
 					action: rule.action,
 					msg: rule.msg,

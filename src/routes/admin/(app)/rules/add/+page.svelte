@@ -1,8 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { AdminService } from '$lib/service/admin.service';
-	import { Tabs, TabItem, Button } from 'flowbite-svelte';
+	import { fail } from '@sveltejs/kit';
+	import { Tabs, TabItem, Button, Toast } from 'flowbite-svelte';
 	import {
+	CheckCircleSolid,
+		CloseCircleSolid,
 		FileCodeOutline,
 		FileShieldOutline,
 		GlobeOutline,
@@ -19,6 +22,8 @@
 	let urlToBlock = '';
 	let wordToBan = '';
 	let ruleID = 0;
+	let successToast = false;
+	let failedToast = false;
 
 	async function addRule() {
 		let rule = {};
@@ -26,6 +31,7 @@
 		switch (activeTab) {
 			case 0:
 				rule = {
+					rule_id: ruleID,
 					raw_rule: rawRule,
 					file_name: 'custom',
 					isEnabled: true
@@ -33,13 +39,15 @@
 				break;
 			case 1:
 				rule = {
-					raw_rule: `SecRule REMOTE_ADDR "@ipMatch ${ipToBan}" "id:${ruleID},phase:1,deny,status:403,log,msg:'IP Ban'"`,
+					rule_id: ruleID,
+					raw_rule: `SecRule REMOTE_ADDR "@contains ${ipToBan}" "id:${ruleID},phase:1,deny,status:403,log,msg:'IP Ban'"`,
 					file_name: 'ip_ban',
 					isEnabled: true
 				};
 				break;
 			case 2:
 				rule = {
+					rule_id: ruleID,
 					raw_rule: `SecRule GEO:COUNTRY_CODE "@streq ${countryToBan}" "id:${ruleID},phase:1,deny,status:403,log,msg:'Country Ban'"`,
 					file_name: 'country_ban',
 					isEnabled: true
@@ -47,6 +55,7 @@
 				break;
 			case 3:
 				rule = {
+					rule_id: ruleID,
 					raw_rule: `SecRule REQUEST_URI "@streq ${urlToBlock}" "id:${ruleID},phase:1,deny,status:403,log,msg:'URL Block'"`,
 					file_name: 'url_block',
 					isEnabled: true
@@ -54,7 +63,8 @@
 				break;
 			case 4:
 				rule = {
-					raw_rule: `SecRule REQUEST_BODY "@contains ${wordToBan}" "id:${ruleID},phase:2,deny,status:403,log,msg:'Word Ban'"`,
+					rule_id: ruleID,
+					raw_rule: `SecRule ARGS "@contains ${wordToBan}" "id:${ruleID},phase:2,deny,status:403,log,msg:'Word Ban'"`,
 					file_name: 'word_ban',
 					isEnabled: true
 				};
@@ -62,10 +72,13 @@
 		}
 
 		try {
-			await AdminService.addRule(rule);
-			goto('/admin/rules');
-		} catch (e) {
-			console.error('Error adding rule:', e);
+			let res = await AdminService.addRule(rule);
+			failedToast = false
+			successToast = true
+			console.error(res);
+		} catch (e:any) {
+			failedToast = true
+			successToast = false
 		}
 	}
 </script>
@@ -239,3 +252,22 @@
 			class="text-sm whitespace-pre-wrap">SecRule REQUEST_BODY "@contains {wordToBan}" "id:{ruleID},phase:2,deny,status:403,log,msg:'Word Ban'</pre>
 	{/if}
 </div>
+
+{#if successToast}
+	<Toast color="green" position="bottom-right" on:close={() => goto('/admin/rules')}>
+		<svelte:fragment slot="icon">
+			<CheckCircleSolid class="w-5 h-5" />
+			<span class="sr-only">Check icon</span>
+		</svelte:fragment>
+		Rule Succesfully Added
+	</Toast>
+{/if}
+{#if failedToast}
+	<Toast color="red" position="bottom-right">
+		<svelte:fragment slot="icon">
+			<CloseCircleSolid class="w-5 h-5" />
+			<span class="sr-only">Error icon</span>
+		</svelte:fragment>
+		Rule with the ID {ruleID} already exists
+	</Toast>
+{/if}

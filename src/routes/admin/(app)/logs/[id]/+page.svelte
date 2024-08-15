@@ -65,14 +65,18 @@
 	async function getLog() {
 		lid = window.location.href.split('/')[5];
 		res = await AdminService.getLog(lid);
-		// TODO : Toast if cant ge log
+		// TODO : Toast if cant get log
 		logData = res.log.dataset[0];
+		console.log("logData", logData);
 		incidentResponse = res.incidentResponse;
-		console.log(incidentResponse);
+		console.log("incidentResponse", incidentResponse);
 
 		if (logData[7] == false) {
+			console.log("logData[6]", logData[6])
 			let res2 = await getRuleInfo(logData[6]);
+			console.log("res2", res2)
 			ruleInfo = res2.rule[0];
+			console.log("res2.rule[0]", res2.rule[0])
 
 			if (incidentResponse != null) {
 				title = incidentResponse.title;
@@ -83,10 +87,45 @@
 				resolvedAt = incidentResponse.resolved_at;
 			}
 		}
+		console.log("true");
 	}
 
+	onMount(async () => {
+		role = localStorage.getItem('role');
+		lid = window.location.href.split('/')[5];
+		res = await AdminService.getLog(lid);
+		// TODO : Toast if cant get log
+		logData = res.log.dataset[0];
+		console.log("logData", logData);
+		incidentResponse = res.incidentResponse;
+		console.log("incidentResponse", incidentResponse);
+
+		if (logData[7] == false) {
+			console.log("logData[6]", logData[6])
+			let res2 = await getRuleInfo(logData[6]);
+			console.log("res2", res2)
+			ruleInfo = res2.rule[0];
+			console.log("res2.rule[0]", res2.rule[0])
+
+			if (incidentResponse != null) {
+				title = incidentResponse.title;
+				actionsTaken = incidentResponse.actionsTaken;
+				dateOfActionsTaken = incidentResponse.dateOfAction;
+				severity = incidentResponse.severity;
+				status = incidentResponse.status;
+				resolvedAt = incidentResponse.resolved_at;
+			}
+		}
+		console.log("true");
+		console.log("DONE GET LOG")
+		logData = logData
+	});
+
 	async function getRuleInfo(ruleID: string): Promise<any> {
-		res = await AdminService.getRuleInfo(ruleID);
+		console.log("getting rule info");
+		let res = await AdminService.getRuleInfo(ruleID);
+
+		console.log(res);
 		return res;
 	}
 
@@ -157,10 +196,7 @@
 		}
 	}
 
-	onMount(async () => {
-		role = localStorage.getItem('role');
-		await getLog();
-	});
+
 </script>
 
 <svelte:head>
@@ -328,8 +364,8 @@
 									</p>
 									<p class="text-gray-300 leading-relaxed p-1">{incidentResponse.actionsTaken}</p>
 									{#if incidentResponse.status === 'closed'}
-										<p class="text-gray-300 leading-relaxed">
-											Resolved At: {formatTimestamp2(incidentResponse.resolved_at)}
+										<p class="text-gray-300 leading-relaxed pt-2">
+											<span class="text-sm text-gray-400">Resolved At: <br></span>{formatTimestamp2(incidentResponse.resolved_at)}
 										</p>
 									{/if}
 									<p class="text-gray-300 leading-relaxed text-right pt-2">
@@ -419,7 +455,7 @@
 				</Select>
 			</Label>
 			<Label class="space-y-2">
-				<span>Resolved At</span>
+				<span >Resolved At</span>
 				<Input type="datetime-local" name="resolvedAt" bind:value={resolvedAt} placeholder="" />
 			</Label>
 			<Button type="submit" class="w-full">Add Incident Response</Button>

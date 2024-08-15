@@ -130,7 +130,7 @@
 				required
 			/>
 		</div>
-		<div class="w-full">
+		<div class="w-full">	
 			<Label for="waf" class="mb-2">Web Application Firewall (WAF)</Label>
 			<Toggle id="waf" bind:checked={wafEnabled} />
 		</div>

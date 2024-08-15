@@ -158,10 +158,9 @@
 						<a href="/admin/users" class="text-white">Users</a>
 					</button>
 				</li>
-				<li class="flex items-center justify-center">
+				<li class="flex ">
 					<div class=" md:order-2">
 						<UserCircleOutline id="avatar-menu" class="w-8 h-8" />
-						<NavHamburger class1="w-full md:flex md:w-auto md:order-1" />
 					</div>
 					<Dropdown placement="bottom" triggeredBy="#avatar-menu">
 						<DropdownHeader>
@@ -170,7 +169,7 @@
 						</DropdownHeader>
 						<DropdownItem
 							on:click={() => {
-								goto('settings');
+								goto('/admin/settings');
 							}}>Settings</DropdownItem
 						>
 						<DropdownDivider />

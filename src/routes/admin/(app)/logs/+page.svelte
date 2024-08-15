@@ -29,6 +29,7 @@
 		CloseCircleSolid
 	} from 'flowbite-svelte-icons';
 
+	let a:any
 	let logs: any[] = [];
 	let columns: any[] = [];
 	let searchTerm: string = '';
@@ -99,29 +100,48 @@
 		goto(`/admin/logs/${logID}`);
 	}
 
-	function filterLogs() {
-		filteredLogs = logs.filter(
-			(log) =>
-				(log[2].toLowerCase().includes(searchTerm.toLowerCase()) ||
-					log[4].toLowerCase().includes(searchTerm.toLowerCase())) &&
-				(responseFilter === 'All' ||
-					(responseFilter === 'Accepted' && log[7] === true) ||
-					(responseFilter === 'Denied' && log[7] === false))
+function filterLogs() {
+	filteredLogs = logs.filter((log) => {
+		let searchField: string;
+
+		switch (searchSelected) {
+			case 'Path':
+				searchField = log[2];
+				break;
+			case 'Timestamp':
+				searchField = formatTimestamp(log[13]);
+				break;
+			case 'Client IP':
+				searchField = log[4];
+				break;
+			case 'Request Method':
+				searchField = log[1];
+				break;
+			default:
+				searchField = '';
+		}
+
+		return (
+			searchField.toLowerCase().includes(searchTerm.toLowerCase()) &&
+			(responseFilter === 'All' ||
+				(responseFilter === 'Accepted' && log[7] === true) ||
+				(responseFilter === 'Denied' && log[7] === false))
 		);
-		totalItems = filteredLogs.length;
-		updateDataAndPagination();
-	}
+	});
+	totalItems = filteredLogs.length;
+	updateDataAndPagination();
+}
 
 	function updateDataAndPagination() {
 		renderPagination(filteredLogs.length);
 	}
 
 	function loadNextPage() {
-		if (currentPosition + itemsPerPage < filteredLogs.length) {
+		if (currentPosition + itemsPerPage < totalItems) {
 			currentPosition += itemsPerPage;
 			updateDataAndPagination();
 		}
-	}
+	}	
 
 	function loadPreviousPage() {
 		if (currentPosition - itemsPerPage >= 0) {
@@ -131,7 +151,7 @@
 	}
 
 	function renderPagination(totalItems: number) {
-		totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+		totalPages = Math.ceil(totalItems / itemsPerPage);
 		const currentPage = Math.ceil((currentPosition + 1) / itemsPerPage);
 
 		startPage = currentPage - Math.floor(showPage / 2);
@@ -139,10 +159,16 @@
 		endPage = Math.min(startPage + showPage - 1, totalPages);
 
 		pagesToShow = Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+		console.log(totalItems)
+		console.log(filteredLogs)
 	}
 
 	function goToPage(pageNumber: number) {
+		console.log()
 		currentPosition = (pageNumber - 1) * itemsPerPage;
+		console.log(pageNumber)
+		console.log(currentPosition)
+
 		updateDataAndPagination();
 	}
 
@@ -174,7 +200,10 @@
 							(responseFilter === 'Accepted' && log[7] === true) ||
 							(responseFilter === 'Denied' && log[7] === false))
 			  )
-			: logs.slice(currentPosition, currentPosition + itemsPerPage);
+			: logs;
+
+
+	$: a = console.log(filteredLogs)
 
 	onMount(async () => {
 		await getLogs();
@@ -192,7 +221,7 @@
 				<InfoCircleSolid class="w-5 h-5" />
 				<span class="text-lg font-bold">New blocked request detected!</span>
 			</div>
-			<p class="mt-2 mb-4 text-sm font-light">
+			<p class="mt-2 mb-4 text-sm font-light text-clip overflow-hidden">
 				User with IP <span class="font-bold">"{blockedLogs[0][4]}"</span> accessing path
 				<span class="font-bold">"{blockedLogs[0][1]} {blockedLogs[0][2]}"</span>
 				has violated Rule ID <span class="font-bold">{blockedLogs[0][6]}</span>
